@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search by Class</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab:hover {
+            border-bottom-color: #3b82f6; /* Tailwind's blue-500 */
+        }
+        .tab.active {
+            border-bottom-color: #3b82f6; /* Tailwind's blue-500 */
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Search by Class</h1>
+
+        <div class="flex mb-4">
+            <div class="tab" onclick="window.location.href='./index.html'">Student Search</div>
+            <div class="tab active" onclick="window.location.href='./searchbyclass.html'">Search by Class</div>
+            <div class="tab" onclick="window.location.href='./calendar.html'">Calendar</div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <div class="w-full md:w-1/4">
+                <label for="classDropdown" class="block text-gray-700 text-sm font-bold mb-2">Select Class:</label>
+                <select id="classDropdown" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">All Classes</option>
+                    </select>
+            </div>
+            <div class="w-full md:w-3/4 flex justify-start md:justify-end mt-4 md:mt-0">
+                <button id="searchButton" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md shadow-md focus:outline-none focus:shadow-outline transition duration-300 ease-in-out">Search</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Class Overview</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto rounded-lg hidden" id="classOverviewTable">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Student Name</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Date</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Positive Behavior</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Negative Behavior</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Struggles</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Strengths</th>
+                            <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Other Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        </tbody>
+                </table>
+                <p id="noDataMessage" class="text-gray-500 text-center py-4">No class selected.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const classDropdown = document.getElementById('classDropdown');
+            const searchButton = document.getElementById('searchButton');
+            const classOverviewTable = document.getElementById('classOverviewTable');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const tableBody = classOverviewTable.querySelector('tbody');
+
+            // Sample data (replace with your actual data source)
+            const studentData = [
+                { name: "Ada Lovelace", class: "CS101", positiveBehavior: "Solved complex algorithm", negativeBehavior: "Used unauthorized AI tool", struggles: "Parallel processing", strengths: "Algorithm design", otherNotes: "Excellent problem-solver", date: "2024-01-15" },
+                { name: "Alan Turing", class: "CS101", positiveBehavior: "Developed new encryption method", negativeBehavior: "Missed project deadline", struggles: "Debugging", strengths: "Cryptography", otherNotes: "Highly innovative", date: "2024-01-15" },
+                { name: "Grace Hopper", class: "CS201", positiveBehavior: "Created efficient compiler", negativeBehavior: "Had trouble with version control", struggles: "Lower-level programming", strengths: "Compiler design", otherNotes: "Pioneered programming languages", date: "2024-01-16" },
+                { name: "Dennis Ritchie", class: "CS201", positiveBehavior: "Designed new programming language", negativeBehavior: "Didn't document code", struggles: "Memory management", strengths: "Systems programming", otherNotes: "Influential in modern computing", date: "2024-01-16" },
+                { name: "Margaret Hamilton", class: "CS301", positiveBehavior: "Led software development team", negativeBehavior: "Overestimated project timeline", struggles: "Real-time systems", strengths: "Software engineering", otherNotes: "Critical contributions to space program", date: "2024-01-17" },
+                { name: "Linus Torvalds", class: "CS301", positiveBehavior: "Developed widely used OS kernel", negativeBehavior: "Had a heated exchange with a colleague", struggles: "GUI development", strengths: "Operating systems", otherNotes: "Revolutionized open-source development", date: "2024-01-17" },
+                { name: "Frances Allen", class: "CS201", positiveBehavior: "Optimized code performance", negativeBehavior: "Didn't share research findings", struggles: "Hardware limitations", strengths: "Code optimization", otherNotes: "Groundbreaking work in compiler optimization", date: "2024-01-18" },
+                { name: "Tim Berners-Lee", class: "CS301", positiveBehavior: "Invented the World Wide Web", negativeBehavior: "Forgot to back up crucial data", struggles: "Network protocols", strengths: "Web technologies", otherNotes: "Transformed global communication", date: "2024-01-18" },
+                { name: "David Wheeler", class: "CS101", positiveBehavior: "Pioneered subroutines", negativeBehavior: " Introduced a bug into the system", struggles: "Assembly Language", strengths: "Subroutines", otherNotes: "Important contributions to computer science.", date: "2024-01-19" },
+               
+            ];
+
+            function populateClassDropdown() {
+                const classes = [...new Set(studentData.map(student => student.class))]; // Get unique classes
+                classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classDropdown.appendChild(option);
+                });
+            }
+
+            function updateClassOverview(selectedClass) {
+                tableBody.innerHTML = ''; // Clear previous data
+                noDataMessage.classList.remove('hidden');
+                classOverviewTable.classList.add('hidden');
+
+                const filteredStudents = selectedClass
+                    ? studentData.filter(student => student.class === selectedClass)
+                    : studentData;
+
+                if (filteredStudents.length > 0) {
+                    noDataMessage.classList.add('hidden');
+                    classOverviewTable.classList.remove('hidden');
+                    filteredStudents.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-4 py-2">${student.name}</td>
+                            <td class="px-4 py-2">${student.date}</td>
+                            <td class="px-4 py-2">${student.positiveBehavior}</td>
+                            <td class="px-4 py-2">${student.negativeBehavior}</td>
+                            <td class="px-4 py-2">${student.struggles}</td>
+                            <td class="px-4 py-2">${student.strengths}</td>
+                            <td class="px-4 py-2">${student.otherNotes}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            }
+
+            searchButton.addEventListener('click', () => {
+                const selectedClass = classDropdown.value;
+                updateClassOverview(selectedClass);
+            });
+
+            // Initial setup
+            populateClassDropdown();
+            updateClassOverview(); // Show all students initially
+        });
+    </script>
+</body>
+</html>
