@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab:hover {
+            border-bottom-color: #3b82f6; /* Tailwind's blue-500 */
+        }
+        .tab.active {
+            border-bottom-color: #3b82f6; /* Tailwind's blue-500 */
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Student Search</h1>
+
+        <div class="flex mb-4">
+            <div class="tab" onclick="window.location.href='./index.html'">Student Search</div>
+            <div class="tab" onclick="window.location.href='./searchbyclass.html'">Search by Class</div>
+            <div class="tab" onclick="window.location.href='./calendar.html'">Calendar</div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <div class="w-full md:w-1/4">
+                <input type="text" id="studentNameInput" placeholder="Search by Student Name" class="w-full px-4 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="w-full md:w-3/4 flex justify-start md:justify-end mt-4 md:mt-0">
+                <button id="searchButton" class="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md shadow-md focus:outline-none focus:shadow-outline transition duration-300 ease-in-out">Search</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6">
+            <div class="w-full md:w-1/4">
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Name Selected</h2>
+                    <ul id="studentList" class="space-y-2">
+                        </ul>
+                </div>
+            </div>
+            <div class="w-full md:w-3/4">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Name Selected Overview</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto rounded-lg hidden" id="overviewTable">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Date</th>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Positive Behavior</th>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Negative Behavior</th>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Struggles</th>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Strengths</th>
+                                    <th class="px-4 py-2 text-left text-gray-600 font-semibold uppercase">Other Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                </tbody>
+                        </table>
+                         <p id="noDataMessage" class="text-gray-500 text-center py-4">No student selected.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentNameInput = document.getElementById('studentNameInput');
+            const searchButton = document.getElementById('searchButton');
+            const studentList = document.getElementById('studentList');
+            const overviewTable = document.getElementById('overviewTable');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const tableBody = overviewTable.querySelector('tbody');
+
+            const studentData = [
+                { name: "Ada Lovelace", positiveBehavior: "Solved complex algorithm", negativeBehavior: "Used unauthorized AI tool", struggles: "Parallel processing", strengths: "Algorithm design", otherNotes: "Excellent problem-solver", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Ada_Lovelace_portrait.jpg/440px-Ada_Lovelace_portrait.jpg" },
+                { name: "Alan Turing", positiveBehavior: "Developed new encryption method", negativeBehavior: "Missed project deadline", struggles: "Debugging", strengths: "Cryptography", otherNotes: "Highly innovative", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Alan_Turing_photo.jpg/400px-Alan_Turing_photo.jpg" },
+                { name: "Grace Hopper", positiveBehavior: "Created efficient compiler", negativeBehavior: "Had trouble with version control", struggles: "Lower-level programming", strengths: "Compiler design", otherNotes: "Pioneered programming languages", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Grace_Murray_Hopper.jpg/400px-Grace_Murray_Hopper.jpg" },
+                { name: "Dennis Ritchie", positiveBehavior: "Designed new programming language", negativeBehavior: "Didn't document code", struggles: "Memory management", strengths: "Systems programming", otherNotes: "Influential in modern computing", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Dennis_Ritchie_2011.jpg/330px-Dennis_Ritchie_2011.jpg" },
+                { name: "Margaret Hamilton", positiveBehavior: "Led software development team", negativeBehavior: "Overestimated project timeline", struggles: "Real-time systems", strengths: "Software engineering", otherNotes: "Critical contributions to space program", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Margaret_Hamilton_in_1969.jpg/400px-Margaret_Hamilton_in_1969.jpg" },
+                { name: "Linus Torvalds", positiveBehavior: "Developed widely used OS kernel", negativeBehavior: "Had a heated exchange with a colleague", struggles: "GUI development", strengths: "Operating systems", otherNotes: "Revolutionized open-source development", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Linus_Torvalds_at_LinuxCon_Europe_2014.jpg/400px-Linus_Torvalds_at_LinuxCon_Europe_2014.jpg" },
+                { name: "Frances Allen", positiveBehavior: "Optimized code performance", negativeBehavior: "Didn't share research findings", struggles: "Hardware limitations", strengths: "Code optimization", otherNotes: "Groundbreaking work in compiler optimization", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/FranAllen.jpg/400px-FranAllen.jpg" },
+                { name: "Tim Berners-Lee", positiveBehavior: "Invented the World Wide Web", negativeBehavior: "Forgot to back up crucial data", struggles: "Network protocols", strengths: "Web technologies", otherNotes: "Transformed global communication", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sir_Tim_Berners-Lee.jpg/400px-Sir_Tim_Berners-Lee.jpg" },
+                { name: "David Wheeler", positiveBehavior: "Pioneered subroutines", negativeBehavior: " Introduced a bug into the system", struggles: "Assembly Language", strengths: "Subroutines", otherNotes: "Important contributions to computer science.", image: "https://amturing.acm.org/binaries/content/gallery/amturing/pictures/wheeler-david.jpg" },
+               
+            ];
+
+            function updateOverview(selectedName) {
+                tableBody.innerHTML = ''; // Clear previous data
+                noDataMessage.classList.remove('hidden');
+                overviewTable.classList.add('hidden');
+
+                if (selectedName) {
+                    const student = studentData.find(s => s.name === selectedName);
+                    if (student) {
+                        noDataMessage.classList.add('hidden');
+                        overviewTable.classList.remove('hidden');
+                        const row = document.createElement('tr');
+                        const today = new Date().toISOString().split('T')[0];
+                        row.innerHTML = `
+                            <td class="px-4 py-2">${today}</td>
+                            <td class="px-4 py-2">${student.positiveBehavior}</td>
+                            <td class="px-4 py-2">${student.negativeBehavior}</td>
+                            <td class="px-4 py-2">${student.struggles}</td>
+                            <td class="px-4 py-2">${student.strengths}</td>
+                            <td class="px-4 py-2">${student.otherNotes}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    }
+                }
+            }
+
+           function displayStudentList(searchTerm = '') {
+                studentList.innerHTML = ''; // Clear previous list
+                const filteredStudents = studentData.filter(student =>
+                    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                filteredStudents.forEach(student => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('cursor-pointer', 'px-4', 'py-2', 'rounded-md', 'hover:bg-gray-200', 'transition', 'duration-300', 'flex', 'items-center', 'gap-2');
+                    const img = document.createElement('img');
+                    img.src = student.image;
+                    img.alt = student.name;
+                    img.classList.add('rounded-full', 'w-8', 'h-8');
+                    listItem.appendChild(img);
+                    listItem.appendChild(document.createTextNode(student.name));
+                    listItem.addEventListener('click', () => {
+                        updateOverview(student.name);
+                        Array.from(studentList.children).forEach(item => item.classList.remove('bg-blue-100', 'text-blue-700'));
+                        listItem.classList.add('bg-blue-100', 'text-blue-700');
+                    });
+                    studentList.appendChild(listItem);
+                });
+                if (filteredStudents.length === 0) {
+                    studentList.innerHTML = '<li class="px-4 py-2 text-gray-500">No students found.</li>';
+                }
+            }
+
+            searchButton.addEventListener('click', () => {
+                const searchTerm = studentNameInput.value.trim();
+                displayStudentList(searchTerm);
+            });
+
+            // Initial display of all students
+            displayStudentList();
+        });
+    </script>
+</body>
+</html>
